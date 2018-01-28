@@ -58,12 +58,12 @@ Rails.application.configure do
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: 'smtp.gmail.com',
+   address: 'smtp.mailgun.org',
     port: 587,
-    enable_starttls_auto: true,
+    Domain: 'sandbox39e0cbde9d0a4069a3e4201630fa5c67.mailgun.org',
     authentication: 'plain',
-    user_name: 'YOU_GMAIL_ADDRESS',
-    password: 'YOUR_GMAIL_PASSWORD'
+    user_name: 'postmaster@sandbox39e0cbde9d0a4069a3e4201630fa5c67.mailgun.org',
+    password: '5d1fd00638901a64158cefa81d359600'
   }
 
   # config.paperclip_defaults = {
