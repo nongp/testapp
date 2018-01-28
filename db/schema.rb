@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180110200330) do
+ActiveRecord::Schema.define(version: 20180111102722) do
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
 
   create_table "calendars", force: :cascade do |t|
     t.date     "day"
@@ -19,7 +22,7 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.integer  "room_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["room_id"], name: "index_calendars_on_room_id"
+    t.index ["room_id"], name: "index_calendars_on_room_id", using: :btree
   end
 
   create_table "conversations", force: :cascade do |t|
@@ -35,27 +38,27 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.integer  "conversation_id"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
-    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
-    t.index ["user_id"], name: "index_messages_on_user_id"
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id", using: :btree
+    t.index ["user_id"], name: "index_messages_on_user_id", using: :btree
   end
 
   create_table "notifications", force: :cascade do |t|
-    t.string   "content"
+    t.text     "content"
     t.integer  "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.index ["user_id"], name: "index_notifications_on_user_id", using: :btree
   end
 
   create_table "photos", force: :cascade do |t|
     t.integer  "room_id"
     t.datetime "created_at",         null: false
     t.datetime "updated_at",         null: false
-    t.string   "image_file_name"
-    t.string   "image_content_type"
+    t.text     "image_file_name"
+    t.text     "image_content_type"
     t.integer  "image_file_size"
     t.datetime "image_updated_at"
-    t.index ["room_id"], name: "index_photos_on_room_id"
+    t.index ["room_id"], name: "index_photos_on_room_id", using: :btree
   end
 
   create_table "reservations", force: :cascade do |t|
@@ -68,8 +71,8 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.datetime "created_at",             null: false
     t.datetime "updated_at",             null: false
     t.integer  "status",     default: 1
-    t.index ["room_id"], name: "index_reservations_on_room_id"
-    t.index ["user_id"], name: "index_reservations_on_user_id"
+    t.index ["room_id"], name: "index_reservations_on_room_id", using: :btree
+    t.index ["user_id"], name: "index_reservations_on_user_id", using: :btree
   end
 
   create_table "reviews", force: :cascade do |t|
@@ -79,24 +82,24 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.integer  "reservation_id"
     t.integer  "guest_id"
     t.integer  "host_id"
-    t.string   "type"
+    t.text     "type"
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
-    t.index ["guest_id"], name: "index_reviews_on_guest_id"
-    t.index ["host_id"], name: "index_reviews_on_host_id"
-    t.index ["reservation_id"], name: "index_reviews_on_reservation_id"
-    t.index ["room_id"], name: "index_reviews_on_room_id"
+    t.index ["guest_id"], name: "index_reviews_on_guest_id", using: :btree
+    t.index ["host_id"], name: "index_reviews_on_host_id", using: :btree
+    t.index ["reservation_id"], name: "index_reviews_on_reservation_id", using: :btree
+    t.index ["room_id"], name: "index_reviews_on_room_id", using: :btree
   end
 
   create_table "rooms", force: :cascade do |t|
-    t.string   "home_type"
-    t.string   "room_type"
+    t.text     "home_type"
+    t.text     "room_type"
     t.integer  "accommodate"
     t.integer  "bed_room"
     t.integer  "bath_room"
-    t.string   "listing_name"
+    t.text     "listing_name"
     t.text     "summary"
-    t.string   "address"
+    t.text     "address"
     t.boolean  "is_tv"
     t.boolean  "is_kitchen"
     t.boolean  "is_air"
@@ -110,7 +113,7 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.float    "latitude"
     t.float    "longitude"
     t.integer  "instant",      default: 1
-    t.index ["user_id"], name: "index_rooms_on_user_id"
+    t.index ["user_id"], name: "index_rooms_on_user_id", using: :btree
   end
 
   create_table "settings", force: :cascade do |t|
@@ -119,43 +122,42 @@ ActiveRecord::Schema.define(version: 20180110200330) do
     t.integer  "user_id"
     t.datetime "created_at",                  null: false
     t.datetime "updated_at",                  null: false
-    t.index ["user_id"], name: "index_settings_on_user_id"
+    t.index ["user_id"], name: "index_settings_on_user_id", using: :btree
   end
 
   create_table "users", force: :cascade do |t|
-    t.string   "email",                    default: "", null: false
-    t.string   "encrypted_password",       default: "", null: false
-    t.string   "reset_password_token"
+    t.text     "email",                    default: "", null: false
+    t.text     "encrypted_password",       default: "", null: false
+    t.text     "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.integer  "sign_in_count",            default: 0,  null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"
-    t.string   "current_sign_in_ip"
-    t.string   "last_sign_in_ip"
+    t.text     "current_sign_in_ip"
+    t.text     "last_sign_in_ip"
     t.datetime "created_at",                            null: false
     t.datetime "updated_at",                            null: false
-    t.string   "fullname"
-    t.string   "confirmation_token"
+    t.text     "fullname"
+    t.text     "confirmation_token"
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
-    t.string   "provider"
-    t.string   "uid"
-    t.string   "image"
-    t.string   "phone_number"
+    t.text     "provider"
+    t.text     "uid"
+    t.text     "image"
+    t.text     "phone_number"
     t.text     "description"
-    t.string   "pin"
+    t.text     "pin"
     t.boolean  "phone_verified"
+    t.text     "merchant_id"
+    t.text     "merchant_provider"
+    t.text     "merchant_access_code"
+    t.text     "merchant_publishable_key"
+    t.text     "omise_id"
     t.string   "stripe_id"
-    t.string   "merchant_id"
-    t.string   "merchant_provider"
-    t.string   "merchant_access_code"
-    t.string   "merchant_publishable_key"
-    t.integer  "unread",                   default: 1
-    t.string   "omise_id"
-    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true, using: :btree
+    t.index ["email"], name: "index_users_on_email", unique: true, using: :btree
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
   end
 
 end
