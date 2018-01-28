@@ -62,7 +62,7 @@ class User < ApplicationRecord
   end
 
   def is_active_host
-    !self.merchant_id.blank?
+  #  !self.merchant_id.blank?
   end
 
 end
