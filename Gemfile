@@ -58,3 +58,10 @@ gem 'omniauth-stripe-connect', '~> 2.10.0'
 gem 'chartkick', '~> 2.2.4'
 
 gem 'omise'
+
+gem 'sequel'
+
+group :production do
+  gem 'pg'
+  gem 'rails_12factor'
+end
