@@ -79,18 +79,7 @@ Rails.application.configure do
     authentication: 'plain',
     user_name: 'postmaster@sandbox39e0cbde9d0a4069a3e4201630fa5c67.mailgun.org',
     password: '5d1fd00638901a64158cefa81d359600'
-  }
-
-    config.paperclip_defaults = {
-     storage: :s3,
-     path: ':class/:attachment/:id/:style/:filename',
-     s3_host_name: 's3-ap-southeast-1.amazonaws.com',
-     s3_credentials: {
-       bucket: 'staynplay',
-       access_key_id: 'AKIAJAGLKBF5CCBILTNA',
-       secret_access_key: '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',
-       s3_region: 'ap-southeast-1'
-     }
+}
 
   # Use a different logger for distributed setups.
   # require 'syslog/logger'
@@ -104,4 +93,15 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+      config.paperclip_defaults = {
+     storage: :s3,
+     path: ':class/:attachment/:id/:style/:filename',
+     s3_host_name: 's3-ap-southeast-1.amazonaws.com',
+     s3_credentials: {
+       bucket: 'staynplay',
+       access_key_id: 'AKIAJAGLKBF5CCBILTNA',
+       secret_access_key: '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',
+       s3_region: 'ap-southeast-1'
+  }
 end
