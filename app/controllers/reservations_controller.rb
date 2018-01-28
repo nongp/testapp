@@ -70,37 +70,30 @@ class ReservationsController < ApplicationController
       @client.messages.create(
         from: '+17273996136',
         to: room.user.phone_number,
-        body: "#{reservation.user.fullname} booked your '#{room.listing_name}'"
+        body: "New Booking from #{reservation.user.fullname}! - StayNPlay"
       )
     end
 
     def charge(room, reservation)
-      if !reservation.user.stripe_id.blank?
-        customer = Stripe::Customer.retrieve(reservation.user.stripe_id)
-        charge = Stripe::Charge.create(
+          if !reservation.user.omise_id.blank?
+        customer = Omise::Customer.retrieve(reservation.user.omise_id)
+        charge = Omise::Charge.create(
           :customer => customer.id,
           :amount => reservation.total * 100,
           :description => room.listing_name,
-          :currency => "usd",
-          :destination => {
-            :amount => reservation.total * 80, # 80% of the total amount goes to the Host
-            :account => room.user.merchant_id # Host's Stripe customer ID
-          }
-        )
+          :currency => "thb"
+          )
 
         if charge
           reservation.Approved!
           ReservationMailer.send_email_to_guest(reservation.user, room).deliver_later if reservation.user.setting.enable_email
           send_sms(room, reservation) if room.user.setting.enable_sms
-          flash[:notice] = "Reservation created successfully!"
+          flash[:notice] = "เรียบร้อย!! คุณสามารถดูรายละเอียดการจองของคุณได้ที่เมนู 'ทริปของฉัน'"
         else
           reservation.Declined!
-          flash[:alert] = "Cannot charge with this payment method!"
+          flash[:alert] = "ขออภัยค่ะ ระบบไม่สามารถเรียกเก็บเงินจากบัตรของคุณ กรุณาอัพเดทข้อมูลบัตร Credit หรือบัตร Debit แล้วลองใหม่อีกครั้งค่ะ!"
         end
       end
-    rescue Stripe::CardError => e
-      reservation.declined!
-      flash[:alert] = e.message
     end
 
     def set_reservation

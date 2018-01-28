@@ -44,35 +44,39 @@ class UsersController < ApplicationController
   #  if !current_user.merchant_id.blank?
   #    account = Stripe::Account.retrieve(current_user.merchant_id)
   #    @login_link = account.login_links.create()
-    end
   end
+
 
   def add_card
-    if current_user.stripe_id.blank?
-      customer = Stripe::Customer.create(
-        email: current_user.email
-      )
-      current_user.stripe_id = customer.id
-      current_user.save
+    begin
+      if current_user.omise_id.blank?
+        customer = Omise::Customer.create(
+        email: current_user.email,
+        description: "Add Card",
+        card: params[:omise_token]
+        )
+        current_user.omise_id = customer.id
+        current_user.save
 
-      # Add Credit Card to Stripe
-      customer.sources.create(source: params[:stripeToken])
-    else
-      customer = Stripe::Customer.retrieve(current_user.stripe_id)
-      customer.source = params[:stripeToken]
-      customer.save
-    end
+        # Add Credit Card to Omise
+        #customer.sources.create(source: params[:omiseToken])
+        else
+        customer = Omise::Customer.retrieve(current_user.omise_id)
+        customer.id = current_user.omise_id
+        customer.save
+      end
 
-    flash[:notice] = "Your card is saved."
-    redirect_to payment_method_path
-  rescue Stripe::CardError => e
-    flash[:alert] = e.message
-    redirect_to payment_method_path
+        flash[:notice] = "Your card is saved."
+        redirect_to payment_method_path
+      rescue TypeError, NameError => e
+        flash[:alert] = e.message
+        redirect_to payment_method_path
+      end
   end
 
-  private
 
+  private
     def user_params
       params.require(:user).permit(:phone_number, :pin)
     end
-end
+end  

@@ -1,40 +1,44 @@
 <div class="row">
   <div class="col-md-3">
     <ul class="sidebar-list">
-      <li class="sidebar-item"><%= link_to "Payment Method", payment_method_path, class: "sidebar-link active" %></li>
-      <li class="sidebar-item"><%= link_to "Payout Method", payment_method_path, class: "sidebar-link" %></li>
-      <li class="sidebar-item"><%= link_to "Notification Settings", payment_method_path, class: "sidebar-link" %></li>
+      <li class="sidebar-item"><%= link_to "ตั้งค่าการชำระเงิน", payment_method_path, class: "sidebar-link active" %></li>
+      <li class="sidebar-item"><%= link_to "ตั้งค่าการรับเงิน", payout_method_path, class: "sidebar-link" %></li>
+      <li class="sidebar-item"><%= link_to "คั้งค่าการแจ้งเตือน", notification_settings_path, class: "sidebar-link" %></li>
     </ul>
   </div>
 
   <div class="col-md-9">
     <div class="panel panel-default">
-      <div class="panel-heading">Payment Method</div>
+      <div class="panel-heading">ตั้งค่าการชำระเงิน</div>
       <div class="panel-body">
         <div class="container">
-            <%= form_tag("/add_card", method: "post", id: "add-card") do %>
+           <%= form_tag("/add_card", method: "POST", id: "add-card") do %>
+              
+                  <div id="token_errors"></div>
 
-                <label>
-                  <span>Name</span>
-                  <input name="cardholder-name" class="field" placeholder="Jane Doe" />
-                </label>
+                      <input type="hidden" name="omise_token">
 
-                <label>
-                  <span>Card</span>
-                  <div id="card-element" class="field"></div>
-                </label>
-
-                <div class="outcome">
-                  <div class="error" role="alert"></div>
-                </div>
-
-                <% if current_user.stripe_id %>
-                  <button type="submit" class="btn btn-normal btn-block">Update Card</button>
-                <% else %>
-                  <button type="submit" class="btn btn-normal btn-block">Add Card</button>
-                <% end %>
-
-
+                      <div>
+                        ชื่อบนบัตร<br>
+                        <input type="text" data-omise="holder_name">
+                      </div>
+                      <div>
+                        หมายเลขบัตร<br>
+                        <input type="text" data-omise="number">
+                      </div>
+                      <div>
+                        วันหมดอายุ<br>
+                        <input type="text" data-omise="expiration_month" size="4"> /
+                        <input type="text" data-omise="expiration_year" size="8">
+                      </div>
+                      <div>
+                        CVV<br>
+                        <input type="text" data-omise="security_code" size="8">
+                      </div>
+                      <br/>
+                      <div>
+                      <input type="submit" id="create_token">
+                      </div>
             <% end %>
         </div>
       </div>
@@ -42,59 +46,61 @@
   </div>
 </div>
 
-<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.omise.co/omise.js"></script>
+<script src="http://code.jquery.com/jquery-1.12.1.min.js"></script>
+
 <script>
-  $(function() {
+/*$(document).on("turbolinks:load", function() {*/
+// Set your Omise public key to authenticate against Omise API. This allows card information to be sent directly to Omise.
+  Omise.setPublicKey('pkey_test_53x6wu9xs4h7zqkzq37');
 
-    var stripe = Stripe('<%= Rails.configuration.stripe[:publishable_key] %>');
-    var elements = stripe.elements();
+    $("#add-card").submit(function () {
 
-    var card = elements.create('card', {
-      hidePostalCode: true,
-      style: {
-        base: {
-          iconColor: '#F99A52',
-          color: '#32315E',
-          lineHeight: '48px',
-          fontWeight: 400,
-          fontFamily: '"Helvetica Neue", "Helvetica", sans-serif',
-          fontSize: '15px',
+        var form = $(this);
 
-          '::placeholder': {
-            color: '#CFD7DF',
-          }
-        },
-      }
-    });
+        // Disable the submit button to avoid repeated click.
+        form.find("input[type=submit]").prop("disabled", true);
 
-    card.mount('#card-element');
-
-    function setOutcome(result) {
-
-      var errorElement = document.querySelector('.error');
-      errorElement.classList.remove('visible');
-
-      if (result.token) {
-        var form = $('#add-card');
-        form.append($('<input type="hidden" name="stripeToken">').val(result.token.id));
-        form.get(0).submit();
-      } else if (result.error) {
-        errorElement.textContent = result.error.message;
-        errorElement.classList.add('visible');
-      }
-    }
-
-    card.on('change', function(event) {
-      setOutcome(event);
-    });
-
-    $('#add-card').on('submit', function(e) {
-      e.preventDefault();
-      var extraDetails = {
-        name: $('input[name=cardholder-name]').value
+        // Serialize the form fields into a valid card object.
+        var card = {
+          "name": form.find("[data-omise=holder_name]").val(),
+          "number": form.find("[data-omise=number]").val(),
+          "expiration_month": form.find("[data-omise=expiration_month]").val(),
+          "expiration_year": form.find("[data-omise=expiration_year]").val(),
+          "security_code": form.find("[data-omise=security_code]").val()
       };
-      stripe.createToken(card, extraDetails).then(setOutcome);
-    });
 
+      // Send a request to create a token then trigger the callback function once
+      // a response is received from Omise.
+      //
+      // Note that the response could be an error and this needs to be handled within
+      // the callback.
+      Omise.createToken("card", card, function (statusCode, response) {
+        if (response.object == "error" || !response.card.security_code_check) {
+          // Display an error message.
+          var message_text = "SET YOUR SECURITY CODE CHECK FAILED MESSAGE";
+          if(response.object == "error") {
+            message_text = response.message;
+          }
+          $("#token_errors").html(message_text);
+
+          // Re-enable the submit button.
+          form.find("input[type=submit]").prop("disabled", false);
+        } else {
+          // Then fill the omise_token.
+          form.find("[name=omise_token]").val(response.id);
+          console.log(response.message);
+
+          // Remove card number from form before submiting to server.
+          form.find("[data-omise=number]").val("");
+          form.find("[data-omise=security_code]").val("");
+
+          // submit token to server.
+          form.get(0).submit();
+        };
+      });
+
+      // Prevent the form from being submitted;
+      return false;
   });
 </script>
