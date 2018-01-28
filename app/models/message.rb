@@ -2,7 +2,7 @@ class Message < ApplicationRecord
   belongs_to :user
   belongs_to :conversation
 
-  validates_presence_of :context, :conversation_id, :user_id
+  validates_presence_of :content, :conversation_id, :user_id
   after_create_commit :create_notification
 
   def message_time
